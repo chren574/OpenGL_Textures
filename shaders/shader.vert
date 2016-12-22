@@ -18,5 +18,5 @@ void main()
 
 	positionColor = position;
 	ourColor = color;
-	TexCoord = texCoord;
+	TexCoord = vec2(texCoord.x, 1.0f - texCoord.y); // to flop the texture on the right side
 };

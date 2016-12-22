@@ -58,13 +58,6 @@ int main()
 
 	Shader ourShader("Shaders/shader.vert", "Shaders/shader.frag"); // Build and compile our shader program
 
-	/*GLfloat vertices[] = {
-		// Positions         // Colors           // Texture Coords
-		0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // Bottom Right
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // Bottom Left
-		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // Top 
-	};*/
-
 	GLfloat vertices[] = {
 		// Positions          // Colors           // Texture Coords
 		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Top Right
@@ -121,14 +114,19 @@ int main()
 
 	/* ---------------------------------- TEXTURES -----------------------------------*/
 
-	GLuint texture;
-	glGenTextures(1, &texture); // Creates IDs for the buffers 
+	GLuint texture1, texture2;
 
-	glBindTexture(GL_TEXTURE_2D, texture);
+	// ===================
+	// Texture 1
+	// ===================
+	glGenTextures(1, &texture1); // Creates IDs for the buffers 
+	
+	glBindTexture(GL_TEXTURE_2D, texture1);
 
 	// Set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 	// Set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -144,12 +142,30 @@ int main()
 	// ARG 7: Data type
 	// ARG 8: Actual image data.
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0); // Unbind
-	
 
+	// ===================
+	// Texture 2
+	// ===================
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	// Set our texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// Set texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Load, create texture and generate mipmaps
+	image = SOIL_load_image("textures/awesomeface.png", &width, &height, 0, SOIL_LOAD_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
 	/* ---------------------------------- RENDER LOOP -----------------------------------*/
 
 	while (!glfwWindowShouldClose(window))
@@ -162,24 +178,23 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		GLfloat offset = 0.5f;
+		GLfloat sinWave = (sin(glfwGetTime()) / 2) + 0.5;
 		glUniform1f(glGetUniformLocation(ourShader.Program, "Offset"), offset);
-
-		//glBindTexture(GL_TEXTURE_2D, texture);
+		glUniform1f(glGetUniformLocation(ourShader.Program, "sin"), sinWave);
 
 		ourShader.Use();
 		
 		// Bind Texture
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture1"), 0);
 
-		// without EBO
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glDrawArrays(GL_LINE_LOOP, 0, 3);
-
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture2"), 1);
+		
 		glBindVertexArray(VAO);
-		// with EBO
-		//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // with EBO
 		glBindVertexArray(0);
 		
 		glfwSwapBuffers(window); // Swap the screen buffers

@@ -5,14 +5,16 @@ in vec3 ourColor;
 in vec2 TexCoord;
 
 // GLSL has a built-in data-type for texture objects
-uniform sampler2D ourTexture;
+uniform sampler2D ourTexture1;
+uniform sampler2D ourTexture2;
+
+uniform float sin;
 
 out vec4 color;
 
 void main()
 {
-	//color = vec4(ourColor, 1.0f);
-	//color = vec4(positionColor, 1.0f); // Test: Negative values is clamped to 0 => black
-	color = texture(ourTexture, TexCoord); 
-	color = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0f); 
+	//color = texture(ourTexture1, TexCoord); 
+	//color = texture(ourTexture1, TexCoord) * vec4(ourColor*DT, 1.0f);
+	color = mix(texture(ourTexture1, TexCoord + DT), texture(ourTexture2, vec2( TexCoord.s, TexCoord.t + DT)), 0.2f); 
 };
